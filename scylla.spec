@@ -18,6 +18,7 @@ BuildRequires:	cmake
 BuildRequires:	cryptopp-devel
 BuildRequires:	fmt-devel
 BuildRequires:	gcc
+BuildRequires:	g++
 BuildRequires:	gnutls-devel
 BuildRequires:	hwloc-devel
 BuildRequires:	jsoncpp-devel
@@ -42,6 +43,12 @@ BuildRequires:	valgrind-devel
 BuildRequires:	xfsprogs-devel
 BuildRequires:	xxhash-devel
 BuildRequires:	yaml-cpp-devel
+# FIXME: why do we need to specify these?
+BuildRequires:	libatomic_ops-devel
+BuildRequires:	libidn2-devel
+BuildRequires:	libtool-ltdl-devel
+BuildRequires:	libunistring-devel
+BuildRequires:	trousers-devel
 
 %description
 Scylla is a highly scalable, eventually consistent, distributed,
