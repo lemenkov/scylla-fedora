@@ -1,7 +1,7 @@
 %define tag	scylla-%{version}
 
 Name:		scylla-jmx
-Version:	3.3.0
+Version:	4.0.0
 Release:	1%{?dist}
 Summary:	A highly scalable, eventually consistent, distributed, partitioned row database.
 License:	AGPLv3
