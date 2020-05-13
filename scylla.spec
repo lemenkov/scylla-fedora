@@ -44,7 +44,7 @@ BuildRequires:	xfsprogs-devel
 BuildRequires:	xxhash-devel
 BuildRequires:	yaml-cpp-devel
 # FIXME: why do we need to specify these?
-BuildRequires:	libatomic_ops-devel
+BuildRequires:	libatomic
 BuildRequires:	libidn2-devel
 BuildRequires:	libtool-ltdl-devel
 BuildRequires:	libunistring-devel
