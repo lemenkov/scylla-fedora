@@ -1,15 +1,19 @@
+%define tag	scylla-%{version}
+
 Name:		scylla
-Version:        3.3.0
+Version:        4.0.0
 Release:	1%{?dist}
 Summary:	A highly scalable, eventually consistent, distributed, partitioned row database.
 License:	AGPLv3
 URL:            https://github.com/scylladb/%{name}
-#Source0:       https://github.com/scylladb/%{name}/archive/%{name}-%{version}.tar.gz
-Source0:	https://github.com/penberg/scylla/archive/penberg/fedora.tar.gz
-#Source1:	https://github.com/scylladb/%{name}-seastar/archive/%{name}-%{version}/%{name}-seastar-%{version}.tar.gz
+Source0:	https://github.com/scylladb/%{name}/archive/%{tag}.tar.gz#scylla-%{version}.tar.gz
 Source1:        https://github.com/scylladb/seastar/archive/master.tar.gz#/seastar.tar.gz
 Source2:	https://github.com/scylladb/libdeflate/archive/master.tar.gz#/libdeflate.tar.gz
 Source3:	https://github.com/scylladb/zstd/archive/v1.4.2.tar.gz#/zstd.tar.gz
+Patch0:		0001-configure.py-Add-with-seastar-option.patch
+Patch1:		0002-configure.py-Add-with-libdeflate-option.patch
+Patch2:		0003-configure.py-Add-with-zstd-option.patch
+Patch3:		0004-build-replace-xxhash-submodule-with-OS-package.patch
 BuildRequires:	antlr3-C++-devel
 BuildRequires:	antlr3-tool
 BuildRequires:	boost-devel
@@ -55,7 +59,7 @@ Scylla is a highly scalable, eventually consistent, distributed,
 partitioned row database.
 
 %prep
-%autosetup -n scylla-penberg-fedora
+%autosetup -n %{name}-%{tag} -p 1
 tar xvf %SOURCE1
 tar xvf %SOURCE2
 tar xvf %SOURCE3

@@ -1,0 +1,81 @@
+From b3c9a9428a5bea4f425967904ac14b19526c08f7 Mon Sep 17 00:00:00 2001
+From: Avi Kivity <avi@scylladb.com>
+Date: Mon, 27 Apr 2020 11:30:07 +0300
+Subject: [PATCH scylla 4/4] build: replace xxhash submodule with OS package
+
+The xxhash library has been packaged by Fedora, so we can use it
+instead of carrying the submodule. This reduces allows us to
+receive updates as the OS packages are updated. Build time will
+not be reduced since it is a header-only library.
+
+xxhash preserves the hash results across versions so rolling
+upgrades will still work.
+
+The frozen toolchain is updated with the new package.
+
+Tests: unit (dev)
+(cherry picked from commit 1f902302ad8d26f9db8c0622b3bcc844f07d4517)
+---
+ configure.py            | 8 +++++---
+ install-dependencies.sh | 1 +
+ tools/toolchain/image   | 2 +-
+ xxHash                  | 1 -
+ xx_hasher.hh            | 2 +-
+ 5 files changed, 8 insertions(+), 6 deletions(-)
+ delete mode 160000 xxHash
+
+diff --git a/configure.py b/configure.py
+index 4e80f0edac..127a539482 100755
+--- a/configure.py
++++ b/configure.py
+@@ -1297,10 +1297,12 @@ libs = ' '.join([maybe_static(args.staticyamlcpp, '-lyaml-cpp'), '-latomic', '-l
+                  ' -lstdc++fs', ' -lcrypt', ' -lcryptopp', ' -lpthread',
+                  maybe_static(args.staticboost, '-lboost_date_time -lboost_regex -licuuc'), ])
+ 
+-xxhash_dir = 'xxHash'
++pkgconfig_libs = [
++    'libxxhash',
++]
+ 
+-if not os.path.exists(xxhash_dir) or not os.listdir(xxhash_dir):
+-    raise Exception(xxhash_dir + ' is empty. Run "git submodule update --init".')
++args.user_cflags += ' ' + ' '.join([pkg_config(lib, '--cflags') for lib in pkgconfig_libs])
++libs += ' ' + ' '.join([pkg_config(lib, '--libs') for lib in pkgconfig_libs])
+ 
+ if not args.staticboost:
+     args.user_cflags += ' -DBOOST_TEST_DYN_LINK'
+diff --git a/install-dependencies.sh b/install-dependencies.sh
+index 3f38e418de..6e1c9e94a7 100755
+--- a/install-dependencies.sh
++++ b/install-dependencies.sh
+@@ -89,6 +89,7 @@ fedora_packages=(
+     hwloc
+     glibc-langpack-en
+     lld
++    xxhash-devel
+ )
+ 
+ centos_packages=(
+diff --git a/tools/toolchain/image b/tools/toolchain/image
+index c1f5aaa9ab..694a9895d6 100644
+--- a/tools/toolchain/image
++++ b/tools/toolchain/image
+@@ -1 +1 @@
+-docker.io/scylladb/scylla-toolchain:fedora-31-20200402
++docker.io/scylladb/scylla-toolchain:fedora-31-20200427
+diff --git a/xx_hasher.hh b/xx_hasher.hh
+index 80e0072a57..292ee78be0 100644
+--- a/xx_hasher.hh
++++ b/xx_hasher.hh
+@@ -26,7 +26,7 @@
+ 
+ #pragma GCC diagnostic push
+ #pragma GCC diagnostic ignored "-Warray-bounds"
+-#include <xxHash/xxhash.h>
++#include <xxhash.h>
+ #pragma GCC diagnostic pop
+ 
+ #include <array>
+-- 
+2.21.3
+

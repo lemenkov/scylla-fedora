@@ -1,0 +1,68 @@
+From 66255f650bdf369cfcc6e909c0c0445fec3e3cfc Mon Sep 17 00:00:00 2001
+From: Pekka Enberg <penberg@scylladb.com>
+Date: Tue, 28 Apr 2020 09:25:43 +0300
+Subject: [PATCH scylla 3/4] configure.py: Add '--with-zstd' option
+
+This patch adds a '--with-zstd=<PATH>' option to configure.py, which
+allows user to override the default zstd submodule path. This is
+useful when building packages from source tarballs, for example.
+---
+ configure.py | 7 ++++---
+ zstd.cc      | 2 +-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/configure.py b/configure.py
+index 7fb87d8f85..4e80f0edac 100755
+--- a/configure.py
++++ b/configure.py
+@@ -440,6 +440,7 @@ arg_parser.add_argument('--mode', action='append', choices=list(modes.keys()), d
+ arg_parser.add_argument('--with', dest='artifacts', action='append', choices=all_artifacts, default=[])
+ arg_parser.add_argument('--with-seastar', action='store', dest='seastar_path', default='seastar', help='Path to Seastar sources')
+ arg_parser.add_argument('--with-libdeflate', action='store', dest='libdeflate_path', default='libdeflate', help='Path to libdeflate sources')
++arg_parser.add_argument('--with-zstd', action='store', dest='zstd_path', default='zstd', help='Path to zstd sources')
+ arg_parser.add_argument('--cflags', action='store', dest='user_cflags', default='',
+                         help='Extra flags for the C++ compiler')
+ arg_parser.add_argument('--ldflags', action='store', dest='user_ldflags', default='',
+@@ -1284,7 +1285,7 @@ def configure_zstd(build_dir, mode):
+         '-DZSTD_BUILD_PROGRAMS=OFF'
+     ]
+ 
+-    zstd_cmd = ['cmake', '-G', 'Ninja', os.path.relpath('zstd/build/cmake', zstd_build_dir)] + zstd_cmake_args
++    zstd_cmd = ['cmake', '-G', 'Ninja', os.path.relpath(f"{args.zstd_path}/build/cmake", zstd_build_dir)] + zstd_cmake_args
+ 
+     print(zstd_cmd)
+     os.makedirs(zstd_build_dir, exist_ok=True)
+@@ -1400,7 +1401,7 @@ with open(buildfile_tmp, 'w') as f:
+         f.write(textwrap.dedent('''\
+             cxx_ld_flags_{mode} = {cxx_ld_flags}
+             ld_flags_{mode} = $cxx_ld_flags_{mode}
+-            cxxflags_{mode} = $cxx_ld_flags_{mode} {cxxflags} -I. -I {libdeflate_path} -I $builddir/{mode}/gen
++            cxxflags_{mode} = $cxx_ld_flags_{mode} {cxxflags} -I. -I {libdeflate_path} -I {zstd_path}/lib -I $builddir/{mode}/gen
+             libs_{mode} = -l{fmt_lib}
+             seastar_libs_{mode} = {seastar_libs}
+             rule cxx.{mode}
+@@ -1449,7 +1450,7 @@ with open(buildfile_tmp, 'w') as f:
+             rule test.{mode}
+               command = ./test.py --mode={mode}
+               description = TEST {mode}
+-            ''').format(mode=mode, antlr3_exec=antlr3_exec, fmt_lib=fmt_lib, libdeflate_path=args.libdeflate_path, **modeval))
++            ''').format(mode=mode, antlr3_exec=antlr3_exec, fmt_lib=fmt_lib, libdeflate_path=args.libdeflate_path, zstd_path=args.zstd_path, **modeval))
+         f.write(
+             'build {mode}: phony {artifacts}\n'.format(
+                 mode=mode,
+diff --git a/zstd.cc b/zstd.cc
+index 38db40db62..fce46a752e 100644
+--- a/zstd.cc
++++ b/zstd.cc
+@@ -24,7 +24,7 @@
+ // We need to use experimental features of the zstd library (to allocate compression/decompression context),
+ // which are available only when the library is linked statically.
+ #define ZSTD_STATIC_LINKING_ONLY
+-#include "zstd/lib/zstd.h"
++#include <zstd.h>
+ 
+ #include "compress.hh"
+ #include "utils/class_registrator.hh"
+-- 
+2.21.3
+
